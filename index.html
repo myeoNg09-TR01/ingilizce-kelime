@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Günün Kelimeleri</title>
+<meta name="theme-color" content="#14233b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kelimeler">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<style>
+/* Tema: biniş kartı. Lacivert gece zemini, krem kâğıt biletler, kiremit kırmızısı damga. */
+:root{
+  --bg:#14233b; --bg2:#1c3050; --on-bg:#f3ead8; --on-bg-soft:#9fb0c9;
+  --paper:#fbf5e6; --paper2:#f1e8d2; --ink:#17243a; --ink-soft:#6a7387; --rule:#cfc3a6;
+  --stamp:#d2452a; --stamp-ink:#fff8ec;
+  --serif:ui-serif,"New York","Iowan Old Style",Georgia,serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--on-bg);font:17px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  -webkit-text-size-adjust:100%;
+  background-image:radial-gradient(circle at 85% -10%, var(--bg2) 0, transparent 55%);
+  background-attachment:fixed; min-height:100vh;
+  padding:env(safe-area-inset-top) 0 calc(96px + env(safe-area-inset-bottom)) 0}
+main{max-width:560px;margin:0 auto;padding:20px 16px}
+button{font:inherit;-webkit-tap-highlight-color:transparent;cursor:pointer}
+
+/* Üst bölüm: kalkış panosu */
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:4px 4px 18px}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--on-bg-soft)}
+h1{font-family:var(--serif);font-size:30px;line-height:1.1;margin:4px 0 0;font-weight:700;letter-spacing:-.01em}
+.chip{border:1.5px solid var(--on-bg-soft);background:transparent;color:var(--on-bg);border-radius:8px;padding:8px 11px;
+  font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--stamp);border-color:var(--stamp);color:var(--stamp-ink)}
+
+/* Bilet */
+.card{position:relative;overflow:hidden;background:var(--paper);color:var(--ink);border-radius:16px;padding:16px 18px 6px;margin:0 0 18px;
+  box-shadow:0 10px 24px rgba(0,0,0,.28)}
+.strip{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);
+  border-bottom:1.5px solid var(--ink);padding-bottom:8px;margin-bottom:12px}
+.strip b{color:var(--stamp);font-weight:700}
+.wordrow{display:flex;align-items:center;gap:12px}
+.wordrow > div{flex:1;min-width:0}
+.word{font-family:var(--serif);font-size:36px;line-height:1.08;font-weight:700;letter-spacing:-.015em;overflow-wrap:anywhere}
+.meta{font-family:var(--mono);font-size:13px;color:var(--ink-soft);margin-top:5px}
+.meaning{display:inline-block;margin:14px 0 2px;padding:5px 11px;border:2px solid var(--stamp);border-radius:6px;color:var(--stamp);
+  font-weight:700;font-size:17px;transform:rotate(-1.5deg);background:rgba(210,69,42,.06)}
+.perf{position:relative;border-top:2px dashed var(--rule);margin:16px -18px 4px}
+.perf::before,.perf::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg)}
+.perf::before{left:-10px}.perf::after{right:-10px}
+.sent{display:flex;gap:12px;align-items:center;padding:11px 0}
+.sent + .sent{border-top:1px solid var(--paper2)}
+.sent .no{font-family:var(--mono);font-size:12px;color:var(--stamp);align-self:flex-start;padding-top:4px}
+.sent .txt{flex:1;min-width:0}
+.sent .en{font-weight:600}
+.sent .tr{color:var(--ink-soft);font-size:15px}
+
+/* Seri: son 7 günün damgaları */
+.streak{display:flex;align-items:center;gap:7px;margin:0 4px 18px}
+.streak .dot{width:30px;height:30px;border-radius:50%;border:1.5px dashed var(--on-bg-soft);color:var(--on-bg-soft);display:grid;place-items:center;
+  font-family:var(--mono);font-size:11px}
+.streak .dot.on{border:2px solid var(--stamp);background:var(--stamp);color:var(--stamp-ink);font-weight:700;transform:rotate(-8deg)}
+.streak .dot.today{outline:2px solid var(--on-bg);outline-offset:2px}
+.streak .txt{margin-left:auto;text-align:right;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--on-bg-soft);line-height:1.5}
+.streak .txt b{color:var(--on-bg);font-size:13px}
+
+/* Tekrar soruları */
+.qprompt{font-family:var(--serif);font-size:26px;font-weight:700;line-height:1.15;margin:4px 0 4px}
+.qhint{color:var(--ink-soft);font-size:14px;margin-bottom:12px}
+.qlisten{display:flex;align-items:center;gap:12px;margin:4px 0 12px}
+.opt{display:block;width:100%;text-align:left;border:1.5px solid var(--ink);background:transparent;color:var(--ink);border-radius:10px;padding:12px 14px;margin:0 0 8px;font-size:17px}
+.opt.ok{background:#2f7d4f;border-color:#2f7d4f;color:#fff;font-weight:700}
+.opt.no{background:var(--stamp);border-color:var(--stamp);color:var(--stamp-ink)}
+.opt:disabled{cursor:default}
+.card.quiz{padding-bottom:12px}
+.guess{margin-top:14px}
+.card.hide-tr .sent .tr{display:none}
+.card.week{padding-bottom:14px}
+.nums{display:flex;gap:10px;text-align:center}
+.nums div{flex:1}
+.nums b{display:block;font-family:var(--serif);font-size:30px;line-height:1.1}
+.nums span{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+.quizdone{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--on-bg-soft);
+  border:1.5px dashed var(--on-bg-soft);border-radius:10px;padding:10px 14px;margin:0 0 18px;display:flex;justify-content:space-between}
+.quizdone b{color:var(--on-bg)}
+
+/* Dinle düğmesi */
+.play{flex:none;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;color:var(--ink);display:grid;place-items:center;padding:0}
+.play svg{width:20px;height:20px}
+.play.big{width:56px;height:56px;border:0;background:var(--stamp);color:var(--stamp-ink);box-shadow:0 4px 0 #a13119}
+.play.big svg{width:26px;height:26px}
+.play.big:active{transform:translateY(3px);box-shadow:0 1px 0 #a13119}
+.play.busy{animation:pulse .7s ease-in-out infinite alternate}
+@keyframes pulse{to{opacity:.35}}
+
+.note{color:var(--on-bg-soft);font-size:15px;text-align:center;padding:30px 10px}
+.note.err{color:#ffb39f}
+.btn{display:block;width:100%;border:0;border-radius:10px;background:var(--stamp);color:var(--stamp-ink);font-weight:700;padding:14px;margin-top:12px;
+  font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;font-size:14px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn:disabled{opacity:.5}
+
+/* Ayarlar */
+h2{font-family:var(--serif);font-size:21px;margin:0 0 10px}
+#topics{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.topic{border:1.5px solid var(--ink);background:transparent;color:var(--ink);border-radius:8px;padding:8px 11px;font-size:15px}
+.topic[aria-pressed="true"]{background:var(--ink);color:var(--paper);font-weight:600}
+input[type=password],input[type=text],textarea{width:100%;border:1.5px solid var(--ink);background:#fff;color:var(--ink);border-radius:10px;padding:12px;font:inherit;font-size:16px}
+textarea{height:110px;font-size:12px;font-family:var(--mono)}
+.help{color:var(--ink-soft);font-size:14px;margin:8px 0 0}
+.help ol{margin:6px 0 0;padding-left:20px}
+#v-settings .card{padding-bottom:18px}
+
+/* Geçmiş: bagaj etiketi satırları */
+.day{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--on-bg-soft);margin:20px 4px 8px}
+details.hist{background:var(--paper);color:var(--ink);border-radius:12px;margin-bottom:8px;padding:0 16px;border-left:6px solid var(--stamp)}
+details.hist summary{list-style:none;display:flex;align-items:baseline;gap:8px;padding:13px 0}
+details.hist summary::-webkit-details-marker{display:none}
+details.hist summary strong{font-family:var(--serif);font-size:19px}
+details.hist summary i{flex:1;border-bottom:2px dotted var(--rule);min-width:14px;transform:translateY(-4px)}
+details.hist summary span{color:var(--ink-soft);font-size:15px;text-align:right}
+details.hist .card{box-shadow:none;background:none;padding:0 0 4px;margin:0;border-radius:0;overflow:visible}
+details.hist .strip,details.hist .word,details.hist .play.big{display:none}
+details.hist .perf{margin:12px 0 4px}
+details.hist .perf::before,details.hist .perf::after{display:none}
+details.hist .meaning{margin-top:10px}
+
+/* Alt menü */
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));width:min(340px,calc(100% - 32px));
+  background:var(--paper);border-radius:14px;display:flex;padding:5px;box-shadow:0 10px 26px rgba(0,0,0,.4)}
+nav button{flex:1;border:0;background:none;color:var(--ink-soft);border-radius:10px;padding:11px 0;
+  font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+nav button[aria-current="page"]{background:var(--ink);color:var(--paper);font-weight:700}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <section id="v-today">
+    <header class="top">
+      <div><div class="kicker" id="today-date"></div><h1>Günün Kelimeleri</h1></div>
+      <button class="chip" id="slow" aria-pressed="false">Yavaş</button>
+    </header>
+    <div id="streak" class="streak"></div>
+    <div id="today-body"></div>
+  </section>
+
+  <section id="v-history" hidden>
+    <header class="top"><div><div class="kicker" id="hist-count"></div><h1>Geçmiş</h1></div></header>
+    <div id="hist-body"></div>
+  </section>
+
+  <section id="v-settings" hidden>
+    <header class="top"><div><div class="kicker">Kurulum</div><h1>Ayarlar</h1></div></header>
+    <div class="card">
+      <h2>Konular</h2>
+      <div id="topics"></div>
+      <input type="text" id="own-topic" placeholder="Kendi konun (örn. Formula 1)" maxlength="60" autocomplete="off">
+      <div class="help">Kelimeler seçtiğin konulardan gelir. Değişiklik yarının kelimelerinden itibaren geçerli olur.</div>
+    </div>
+    <div class="card">
+      <h2>Gemini API anahtarı</h2>
+      <input type="password" id="key" placeholder="AIza…" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="btn" id="key-save">Kaydet</button>
+      <div class="help" id="key-state"></div>
+      <div class="help">Anahtar yalnızca bu telefonda saklanır.
+        <ol><li>aistudio.google.com adresini aç, Google hesabınla gir.</li>
+        <li><b>Get API key</b> → <b>Create API key</b>.</li>
+        <li>Kodu kopyalayıp buraya yapıştır.</li></ol></div>
+    </div>
+    <div class="card">
+      <h2>Günlük hatırlatma</h2>
+      <div class="help" id="push-state" style="margin-top:0"></div>
+      <button class="btn" id="push-on">Bildirimleri aç</button>
+      <div id="push-out" hidden>
+        <p class="help">Bu kodu kopyala ve GitHub deposunda <b>Settings → Secrets and variables → Actions</b> altında <b>PUSH_SUBSCRIPTION</b> adıyla kaydet.</p>
+        <textarea id="push-code" readonly></textarea>
+        <button class="btn ghost" id="push-copy">Kodu kopyala</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button data-view="today" aria-current="page">Bugün</button>
+  <button data-view="history">Geçmiş</button>
+  <button data-view="settings">Ayarlar</button>
+</nav>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

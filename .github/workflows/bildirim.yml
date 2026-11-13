@@ -1,0 +1,24 @@
+name: Günlük bildirim
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # her gün 09:00 (Türkiye saati); saat UTC yazılır
+  workflow_dispatch:       # elle denemek için
+
+permissions:
+  contents: read
+
+jobs:
+  gonder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save web-push@3
+      - run: node bildirim/gonder.mjs
+        env:
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          PUSH_SUBSCRIPTION: ${{ secrets.PUSH_SUBSCRIPTION }}
+          VAPID_SUBJECT: https://github.com/${{ github.repository }}
