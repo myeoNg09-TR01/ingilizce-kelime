@@ -1,4 +1,6 @@
 'use strict';
+// Başka bir sitenin içine gömülerek açılırsa çalışma (tıklama tuzağına karşı).
+if (window.top !== window.self) { document.documentElement.hidden = true; throw new Error('Gömülü açılış engellendi'); }
 // ---- Ayarlar -------------------------------------------------------------
 const API = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 const TEXT_MODEL = 'gemini-3.5-flash-lite';

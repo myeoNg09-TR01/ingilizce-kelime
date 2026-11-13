@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --no-save web-push@3
+      - run: npm install --no-save --ignore-scripts web-push@3.6.7
       - run: node bildirim/gonder.mjs
         env:
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
